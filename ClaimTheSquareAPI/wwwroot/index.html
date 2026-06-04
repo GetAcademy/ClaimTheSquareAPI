@@ -1,24 +1,146 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <meta charset="utf-8" />
-    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .myGrid {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+        }
+
+            .myGrid > div {
+                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+        .myForm {
+            display: grid;
+            grid-template-columns: repeat(2, 150px);
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
+
 <body>
-<h1>Hei</h1>
-<script>
-    getData();
-    async function getData() {
-        const response = await axios.get('/api/square');
-        const squares = response.data;
-        document.body.innerHTML = squares.map(s =>/*HTML*/`
-            <li style="color: ${s.foreColor}; background-color: ${s.backColor}">
-                ${s.index}
-                ${s.text}
-            </li>
-        `).join('');
-    }
-</script>
+    <div id="app"></div>
+    <script>
+        let model;
+        init();
+        function updateView() {
+            document.getElementById('app').innerHTML = /*HTML*/`
+                    ${createFormHtml()}
+                    <div class="myGrid">
+                        ${createSquaresHtml()}
+                    </div>
+                `;
+        }
+
+        function createSquaresHtml() {
+            let html = '';
+            for (let index = 0; index < 64; index++) {
+                let textObject = model.textObjects.find(to => to.index == index);
+                if (!textObject) {
+                    html += /*HTML*/`<div><button onclick="claim(${index})">fyll</button></div>`;
+                } else {
+                    html += /*HTML*/`
+                            <div style="color: ${textObject.foreColor}; background-color: ${textObject.backColor}">
+                                ${textObject.text}
+                            </div>`;
+                }
+            }
+            return html;
+        }
+
+        function createFormHtml() {
+            return /*HTML*/`
+                    <div class="myForm">
+                        <div>Tekst:</div>
+                        <div>
+                            <input type="text"
+                                   oninput="model.inputs.text=this.value"
+                                   value="${model.inputs.text || ''}"
+                                   />
+                        </div>
+                        <div>Forgrunnsfarge:</div>
+                        <div>${createColorSelect('model.inputs.foreColor')}</div>
+                        <div>Bakgrunnsfarge:</div>
+                        <div>${createColorSelect('model.inputs.backColor')}</div>
+                    </div>
+                `;
+        }
+
+        function createColorSelect(modelField) {
+            const selectedColor = eval(modelField);
+            let optionsHtml = '';
+            const noneSelected = selectedColor == null ? 'selected' : '';
+            for (let color of model.colors) {
+                const selected = color == selectedColor ? 'selected' : '';
+                optionsHtml += /*HTML*/`
+                        <option ${selected}>${color}</option>
+                    `;
+            }
+            return /*HTML*/`
+                    <select onchange="${modelField}=this.value">
+                        <option ${noneSelected}></option>
+                        ${optionsHtml}
+                    </select>
+                    `;
+        }
+
+        function claim(index) {
+            const inputs = model.inputs;
+            if (inputs.foreColor == null
+                || inputs.backColor == null
+                || inputs.text == null
+                || inputs.text.trim().length == 0
+            ) return;
+            // const square = { ...inputs, index };
+            const square = {
+                index: index,
+                text: inputs.text,
+                foreColor: inputs.foreColor,
+                backColor: inputs.backColor,
+            }
+            postSquareToApi(square);
+            model.inputs = {
+                foreColor: null,
+                backColor: null,
+                text: null,
+            };            
+        }
+
+        async function postSquareToApi(square) {
+            await axios.post('/api/square', square);
+            getData();
+        }
+
+        function init() {
+            model = {
+                inputs: {
+                    foreColor: null,
+                    backColor: null,
+                    text: null,
+                },
+                colors: ["black", "white", "gray", "silver", "maroon", "red", "purple", "fushsia", "green", "lime", "olive", "yellow", "navy", "blue", "teal", "aqua"],
+                textObjects: []
+            };
+            getData();
+        }
+
+        async function getData() {
+            const response = await axios.get('/api/square');
+            model.textObjects = response.data;
+            updateView();
+        }
+
+    </script>
+
 </body>
+
 </html>
