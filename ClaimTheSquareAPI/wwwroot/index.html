@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<h1>Hei</h1>
+<script>
+    getData();
+    async function getData() {
+        const response = await axios.get('/api/square');
+        const squares = response.data;
+        document.body.innerHTML = squares.map(s =>/*HTML*/`
+            <li style="color: ${s.foreColor}; background-color: ${s.backColor}">
+                ${s.index}
+                ${s.text}
+            </li>
+        `).join('');
+    }
+</script>
+</body>
+</html>
