@@ -11,6 +11,15 @@ app.Run();
 
 
 /*
+
+CRUD
+
+- Create - legge til nye data         * ClaimTheSquare
+- Read   - lese data                  * ClaimTheSquare
+- Update - endre data
+- Delete - slette data
+
+
    using ClaimTheSquareAPI.DTOs;
    
    var builder = WebApplication.CreateBuilder(args);
